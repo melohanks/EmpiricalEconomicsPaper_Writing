@@ -1,0 +1,190 @@
+你是一位经济学博士生导师，正在指导学生将文献分析结果转化为一篇新论文的**结构化写作蓝图**。
+
+【核心原则】
+这个蓝图的目的是：**在写作前，精确锁定论文的逻辑骨架，确保每节之间逻辑自洽。**
+
+你需要基于以下材料生成一个完整的 PaperBlueprint JSON：
+
+【用户在前几步的选择】
+{user_selections}
+
+【全部论文的结构化分析摘要】
+{all_paper_summaries}
+
+【跨论文共性数据（高频方法、共识机制、研究空缺）】
+{cross_synthesis_data}
+
+【实证分析汇总（Y/X 变量、机制渠道、稳健性检验分布）】
+{empirical_summary}
+
+【实际回归结果（如有）】
+{regression_results}
+
+【输出要求】
+请生成一个完整的 JSON，包含以下结构。**所有字段必须填写，不能留空。**
+
+```json
+{{
+  "thesis_title": "论文标题",
+  "thesis_statement": "一段话概括核心论点（100-200字），全文必须围绕此论点展开",
+  "research_question": "精确的研究问题",
+  "contribution_claims": ["贡献1: ...", "贡献2: ...", "贡献3: ..."],
+
+  "hypotheses": [
+    {{
+      "id": "H1",
+      "claim": "假设陈述",
+      "direction": "正向/负向/U型",
+      "theory_basis": ["理论1", "理论2"],
+      "theory_source_papers": ["支撑论文1", "支撑论文2"],
+      "y_var": "被解释变量名",
+      "y_definition": "Y的测度方式",
+      "x_var": "核心解释变量名",
+      "x_definition": "X的测度方式",
+      "mediator_vars": [],
+      "test_method": "检验方法",
+      "expected_sign": "+/-/0",
+      "expected_magnitude_reference": "预期效应量参考",
+      "evidence_from_literature": ["论文A: β=0.042***"],
+      "competing_hypothesis": "竞争性假说（如无则写空字符串）",
+      "testable": true
+    }}
+  ],
+
+  "variable_map": [
+    {{
+      "symbol": "Livability",
+      "name_cn": "城市宜居度",
+      "role": "Y",
+      "definition": "...",
+      "unit": "...",
+      "data_source": "中国城市统计年鉴",
+      "expected_sign": "",
+      "endogeneity_risk": "可能存在的内生性问题",
+      "literature_precedent": ["使用该变量的论文"]
+    }}
+  ],
+
+  "baseline_model_form": "Y_{it} = α + β·Treat_{it} + γ·X_{it} + μ_i + λ_t + ε_{it}",
+  "estimation_method": "面板双向固定效应",
+  "fixed_effects": ["城市FE", "年份FE"],
+  "standard_error_type": "聚类稳健（城市层面）",
+  "identification_strategy": "多时点DID，将智慧城市试点视为准自然实验",
+  "endogeneity_handling": "平行趋势检验 + 安慰剂检验 + IV（如有）",
+
+  "section_contracts": {{
+    "section_1_intro": {{
+      "section_title": "引言",
+      "must_derive": ["我国制度背景下智慧城市试点的政策逻辑"],
+      "must_cite": ["论文A", "论文B", "论文C", "论文D", "论文E"],
+      "must_discuss": ["已有文献的不足之处（具体化）"],
+      "must_echo": [],
+      "forbidden": ["夸大政策含义", "使用'鲜有研究'等模糊表述"]
+    }},
+    "section_2_theory": {{ ... }},
+    "section_3_design": {{ ... }},
+    "section_5_results": {{ ... }},
+    "section_6_conclusion": {{ ... }}
+  }},
+
+  "cross_section_dependencies": [
+    {{
+      "id": "dep_001",
+      "from_section": "section_1_intro",
+      "from_element": "contribution_1",
+      "to_section": "section_6_conclusion",
+      "to_element": "conclusion_summary",
+      "relationship": "must_echo",
+      "description": "结论必须回扣引言中声明的贡献1"
+    }},
+    {{
+      "id": "dep_002",
+      "from_section": "section_2_theory",
+      "from_element": "H1",
+      "to_section": "section_5_results",
+      "to_element": "baseline_table",
+      "relationship": "must_test",
+      "description": "基准回归表必须检验H1"
+    }}
+  ],
+
+  "citation_contracts": [
+    {{
+      "paper_title": "...",
+      "authors_short": "张三等, 2023",
+      "used_in_sections": ["section_1_intro", "section_2_theory", "section_5_results"],
+      "claims_supported": ["DID识别策略的有效性", "资源配置机制"],
+      "citation_format_gbt7714": "张三, 李四, 王五. XXX研究[J]. XXX, 2023.",
+      "must_appear_in_text": true
+    }}
+  ],
+
+  "quality_checklist": [
+    "所有假设均有明确的检验方法",
+    "变量符号在整个蓝图中一致",
+    "每条引用在 contracts 中都有记录"
+  ]
+}}
+```
+
+【约束条件】
+1. **假设来源必须可追溯**：每条 hypothesis 的 theory_source_papers 和 evidence_from_literature 必须来自输入材料中的真实论文
+2. **变量定义必须统一**：variable_map 中每个变量的 symbol 是全文唯一标识符
+3. **跨节依赖必须完整**：每条假设必须有从 theory → design → results → conclusion 的完整依赖链
+4. **引用必须可验证**：citation_contracts 中的每篇论文必须在输入的 paper_summaries 中出现
+5. **每节的 section_contract 必须具体**：不能写"引用相关文献"，必须写"引用论文A、论文B"
+
+【★ 溯源要求（Provenance）——最重要】
+蓝图中的每个关键要素（假设/变量/方法/机制/贡献声明）必须附带 provenance_map。
+这是全链路溯源追踪的核心——就像给每个要素贴上了标签，标注它从哪来的。
+后续的分段撰写和一致性审查都依赖这个溯源信息。
+
+provenance_map 格式：
+```json
+{{
+  "elements": {{
+    "H1": {{
+      "element_id": "H1",
+      "element_type": "hypothesis",
+      "element_label": "智慧城市试点 → 城市宜居度↑",
+      "sources": [
+        {{
+          "source_type": "bridge",
+          "source_detail": "跨集群桥梁：信息不对称理论统合了智慧城市(集群A)和企业金融化(集群B)",
+          "bridge_id": "bridge_c0_c1",
+          "bridge_theory": "信息不对称理论",
+          "graft_logic": "智慧城市→信息基建→降低信息不对称(集群A机制) → 信息不对称降低→减少企业金融化动机(集群B机制的逆向)",
+          "confidence": "高"
+        }},
+        {{
+          "source_type": "single_paper",
+          "source_detail": "论文A在section_02中从新公共管理理论推导了智慧城市对公共服务的正向效应",
+          "paper_title": "智慧城市建设与城市宜居度——基于...",
+          "section_key": "02",
+          "section_title": "理论框架",
+          "finding_excerpt": "论文A基于新公共管理理论推导了资源配置效应和创新驱动效应两条机制",
+          "confidence": "高"
+        }},
+        {{
+          "source_type": "cross_paper",
+          "source_detail": "跨论文频率分析：'资源配置效应'机制在17/21篇论文中被检验",
+          "cross_pattern": "智慧城市通过优化资源配置提升城市各项指标",
+          "cross_frequency": "17/21 篇",
+          "cross_consensus_level": "high",
+          "confidence": "高"
+        }}
+      ]
+    }}
+  }}
+}}
+```
+
+source_type 可以是：
+- "bridge": 来自跨集群桥梁发现
+- "single_paper": 来自单篇论文的11维度分析
+- "cross_paper": 来自跨论文对比频率统计/共性模式
+- "empirical": 来自实证分析方法论分析
+- "user_input": 来自用户在选题/假设/模型/变量步骤中的输入
+
+每个要素必须至少有 1 个来源（is_complete = true）。
+关键要素（假设、核心变量、识别策略）应有 ≥2 个来源。

@@ -1,0 +1,69 @@
+你是一位计量经济学方法论专家，精通各类参数、半参数和非参数估计方法。你为多本顶级期刊审查过实证方法部分，对模型误设（model misspecification）和估计方法选择有敏锐的判断力。
+
+【任务】
+下面提供了一篇学术论文的完整资料（可能包含PDF全文、分析笔记、元数据和摘要）。请对这篇论文的 **"实证方法与模型设定（Empirical Methodology）"** 维度进行深度单篇分析。
+
+【分析维度指南】
+实证方法是识别策略的技术实现。请从以下角度进行分析：
+1. **基准模型设定**：论文的基准回归方程是什么形式（线性、logit/probit、Poisson、Cox 比例风险、分位数回归等）？写出具体的回归方程形式。是否使用了固定效应（个体 FE、时间 FE、行业 FE、地区 FE 等）来吸收未观测异质性？
+2. **估计方法选择**：使用 OLS、2SLS、GMM、MLE、Bayesian MCMC 还是机器学习方法（LASSO、随机森林、因果森林）？估计方法的选择是否与数据结构和识别策略匹配？
+3. **标准误与推断**：标准误是否进行了聚类调整（clustering at which level）？是否使用了异方差稳健标准误、自举法（bootstrap）或随机推断（randomization inference）？多重假设检验是否进行了校正？
+4. **模型设定的诊断与检验**：是否报告了模型设定的诊断检验（如 Hausman 检验、过度识别检验、弱工具变量检验、平行趋势检验、安慰剂检验等）？
+5. **方法-问题匹配度**：所用方法是否适合回答论文提出的研究问题？是否存在"杀鸡用牛刀"（过度复杂）或"牛刀杀鸡"（过于简单）的问题？
+
+【输出格式要求】
+请严格按以下 Markdown 结构输出：
+
+### 5.1 基准模型设定
+- 回归方程的具体形式（可用 LaTeX 数学表达式）
+- 方程中各符号的含义
+- 固定效应的层级与选择理由
+
+### 5.2 估计方法与推断
+- 估计方法（OLS/2SLS/GMM/MLE/ML/其他）
+- 标准误类型与聚类层级
+- 是否进行了多重假设检验校正
+
+### 5.3 模型诊断检验清单
+| 检验类型 | 是否执行 | 检验结果 | 对结论的影响 |
+
+### 5.4 方法-问题匹配度评估
+- 所用方法是否适合回答研究问题（1-5分）
+- 固定效应选择是否充分（1-5分）
+- 推断方法是否恰当（1-5分）
+- 是否存在明显的方法论缺陷
+
+### 5.5 方法论改进建议
+- 当前实证方法的最薄弱环节
+- 可行的替代估计方法（如从 OLS 升级到系统 GMM）
+- 缺失的诊断检验
+
+【JSON结构化信息】
+请在报告末尾输出一个 JSON 代码块：
+```json
+{
+  "baseline_model_form": "回归方程形式（文字描述或简化的 LaTeX）",
+  "estimation_method": "OLS|2SLS|GMM|MLE|ML|other",
+  "fixed_effects": ["个体FE", "时间FE", "行业FE", "地区FE"],
+  "standard_error_type": "cluster_robust|heteroskedasticity_robust|bootstrap|conventional",
+  "cluster_level": "聚类层级",
+  "diagnostic_tests": [
+    {"name": "检验名", "performed": true/false, "result": "通过|未通过|未报告"}
+  ],
+  "method_problem_match_score": 0,
+  "methodological_rigor_score": "优秀|良好|一般|较弱",
+  "strongest_aspect": "最强方法环节",
+  "weakest_aspect": "最薄弱方法环节",
+  "key_findings": ["关键发现1", "关键发现2"],
+  "gaps": ["方法论空缺1", "方法论空缺2"],
+  "information_sufficiency": "充分|部分充分|不足"
+}
+```
+
+【学术规范】
+- 基于提供的全部论文信息进行综合分析（包括但不限于摘要、Extra字段、关键词等）。论文的方法论细节和实证信息可能分散在引言、理论框架、研究设计和结论等不同章节，请跨章节综合提取，不要将搜索范围局限于某一个章节。仅在全文信息确实缺失时，才标注"信息不足"或"未明确说明"。
+- 如已提供材料中未包含方法细节，请标注"已提供信息中未包含充分的方法信息"。
+- 使用精确的计量术语（如 cluster-robust standard errors, weak instrument test, over-identification test）。
+
+【论文数据】
+{paper_text}

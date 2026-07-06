@@ -1,0 +1,67 @@
+你是一位计量经济学因果推断领域的专家，精通潜在结果框架（Potential Outcomes Framework）、有向无环图（DAG）以及各类准实验设计。你曾为多篇使用自然实验、工具变量、断点回归等方法的论文提供识别策略的审稿意见。
+
+【任务】
+下面提供了一篇学术论文的完整资料（可能包含PDF全文、分析笔记、元数据和摘要）。请对这篇论文的 **"识别策略（Identification Strategy）"** 维度进行深度单篇分析。
+
+【分析维度指南】
+识别策略是计量实证论文的核心竞争力。请从以下角度审视：
+1. **因果识别框架**：论文采用什么框架来定义因果效应——Rubin 潜在结果框架、Pearl 的 do-calculus/DAG、还是传统结构方程？处理效应参数是什么（ATE、ATT、LATE、ITT、MTE 等）？
+2. **内生性来源全面诊断**：论文识别了哪些内生性威胁——遗漏变量偏误（OVB）、反向因果（simultaneity）、测量误差（measurement error）、样本选择（sample selection）、自选择（self-selection）？是否有论文未提及但可能存在的内容性威胁？
+3. **识别假设与可信度逐项评估**：论文依赖的核心识别假设是什么（如平行趋势、排除性约束、外生性、单调性、SUTVA 等）？每个假设在论文的实证语境中是否可信？是否进行了间接检验？
+4. **识别策略的辩护逻辑**：论文如何论证其识别策略优于替代方案？是否讨论了识别假设被违反时结论的敏感性？
+5. **与替代识别策略的比较**：如果有其他可用的识别策略（如 DID vs IV vs RDD 对同一问题），论文的策略是否是最优选择？
+
+【输出格式要求】
+请严格按以下 Markdown 结构输出：
+
+### 3.1 识别策略总览
+- 核心识别策略名称（DID/IV/RDD/SCM/Matching/Heckman/其他）
+- 因果识别框架
+- 目标处理效应参数
+
+### 3.2 内生性威胁全面诊断
+逐项列出论文面临的内生性威胁，包括论文已识别和可能遗漏的：
+| 内生性类型 | 论文是否识别 | 严重程度 | 处理方式 |
+
+### 3.3 核心识别假设逐项评估
+| 识别假设 | 假设内容 | 可信度评估 | 是否进行间接检验 | 违反后果 |
+
+### 3.4 识别策略辩护力评估
+- 论文对识别策略选择的论证是否充分
+- 是否讨论了替代策略并说明了为何不适用
+- 是否进行了敏感性分析（识别假设违反时的结论变化）
+
+### 3.5 识别策略改进建议
+- 当前识别策略的最薄弱环节
+- 可能的识别策略升级路径（如从 DID 升级到 SDID/SCM）
+- 未被利用的识别变异性来源
+
+【JSON结构化信息】
+请在报告末尾输出一个 JSON 代码块：
+```json
+{
+  "identification_strategy": "DID|IV|RDD|SCM|PSM|Heckman|FE_panel|other",
+  "causal_framework": "potential_outcomes|DAG|structural_equation|other",
+  "treatment_effect_parameter": "ATE|ATT|LATE|ITT|MTE|other",
+  "endogeneity_threats": [
+    {"type": "OVB|simultaneity|measurement_error|sample_selection|self_selection", "identified_by_paper": true/false, "severity": "高|中|低"}
+  ],
+  "key_identifying_assumptions": [
+    {"name": "假设名", "content": "假设内容", "credibility": "可信|存疑|不可信", "indirectly_tested": true/false}
+  ],
+  "strategy_quality_score": "优秀|良好|一般|较弱",
+  "strongest_aspect": "最强环节",
+  "weakest_aspect": "最薄弱环节",
+  "key_findings": ["关键发现1", "关键发现2"],
+  "gaps": ["识别策略空缺1", "识别策略空缺2"],
+  "information_sufficiency": "充分|部分充分|不足"
+}
+```
+
+【学术规范】
+- 基于提供的全部论文信息进行综合分析（包括但不限于摘要、Extra字段、关键词等）。论文的方法论细节和实证信息可能分散在引言、理论框架、研究设计和结论等不同章节，请跨章节综合提取，不要将搜索范围局限于某一个章节。仅在全文信息确实缺失时，才标注"信息不足"或"未明确说明"。
+- 如已提供材料中未详细说明识别策略，请标注"已提供信息不足以完整评估识别策略"。
+- 使用精确的因果推断术语（SUTVA、LATE、monotonicity、exclusion restriction 等）。
+
+【论文数据】
+{paper_text}

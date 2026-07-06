@@ -1,0 +1,56 @@
+# ─── 环境变量与密钥（绝对不可提交） ───
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+
+# ─── Claude Code 本地设置（含 API key） ───
+.claude/settings.local.json
+
+# ─── 工作区产出（用户的研究数据） ───
+workspace/
+!workspace/.gitkeep
+!workspace/**/.gitkeep
+
+# ─── 临时和大文件 ───
+*.log
+*.xlsx
+*.xls
+temp_*.json
+temp_*.csv
+temp_*.do
+_test.*
+_stata_temp.*
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── PPT 项目（用户生成的演示文稿） ───
+projects/
+
+# ─── 大文件 ───
+*.zip
+*.tar.gz
+*.rar
+
+# ─── 系统文件 ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── 例外：保留示例文件 ───
+!.env.example
+!references/**/.gitkeep
+!scripts/**/.gitkeep
