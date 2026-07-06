@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "wps-editor": {
+      "command": "python",
+      "args": ["<WPS_EDITOR_MCP_PATH>/server.py"],
+      "description": "WPS Office 编辑器 MCP — Word/Excel/PPT 读写"
+    },
+    "cli-anything-wps": {
+      "command": "python",
+      "args": ["<CLI_ANYTHING_WPS_PATH>/mcp_server.py"],
+      "description": "WPS CLI MCP — 文档创建/导出(DOCX/PDF/XLSX/PPTX)"
+    },
+    "zotero": {
+      "command": "zotero-mcp",
+      "env": {
+        "ZOTERO_LOCAL": "false",
+        "ZOTERO_API_KEY": "<YOUR_ZOTERO_API_KEY>",
+        "ZOTERO_LIBRARY_ID": "<YOUR_ZOTERO_LIBRARY_ID>"
+      },
+      "description": "Zotero MCP — 论文搜索/导入/元数据提取/PDF全文获取"
+    },
+    "stata-mcp": {
+      "command": "python",
+      "args": ["<STATA_MCP_PATH>/.venv/Lib/site-packages/stata_mcp_server.py"],
+      "description": "Stata MCP — Stata .do 文件执行与结果回收"
+    }
+  }
+}
