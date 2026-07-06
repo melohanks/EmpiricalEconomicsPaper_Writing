@@ -694,6 +694,291 @@ class ResearchAgent:
             "final": final_result,
         }
 
+    # ═══════════════════════════════════════════════════════════
+    # ★ 新版 v3: 回归驱动的写作流水线 (Step 4.5→5→4.6→决策→6)
+    # ═══════════════════════════════════════════════════════════
+
+    def writing_pipeline_v3(
+        self,
+        topic_info: str = "",
+        hypothesis_info: str = "",
+        model_info: str = "",
+        variable_info: str = "",
+        data_path: str = "",
+        backend: str = None,
+        model: str = None,
+    ) -> dict:
+        """
+        ★ 新版论文写作全流程（回归驱动版）：
+
+        Step 1-4: 选题→假设→模型→变量（同前）
+        Step 4.5: 数据获取
+        Step 5:   实证回归（执行回归，获取结果）
+        Step 4.6: 回归诊断与决策（判定支撑/部分/不支撑/反向，推荐回退路径）
+        Step 6:   结构化蓝图（仅在 PROCEED 时生成）
+        Step 7-8: 逐节撰写 → 审查 → 定稿
+
+        如果回归不支撑：
+          - 回退到 Step 2（修正假设）、Step 3（调整模型）、Step 4.5（获取新数据）
+          - 或重新考虑选题（RECONSIDER_TOPIC）
+        """
+        print("\n[ResearchAgent] ╔══════════════════════════════════════════╗")
+        print("[ResearchAgent] ║  ★ 论文写作流水线 v3 (回归驱动)        ║")
+        print("[ResearchAgent] ║  Step 4.5→5→4.6→决策→6→7→8          ║")
+        print("[ResearchAgent] ╚══════════════════════════════════════════╝")
+
+        paper_summaries = self._load_paper_summaries(include_archived=True)
+        cross_synthesis = self._load_cross_paper_synthesis()
+        empirical = self._load_empirical_results(include_archived=True)
+        section_analyses = self._collect_section_analyses_for_all_papers()
+
+        # ── 加载前几步的产出 ──
+        hypothesis_data = self._load_step_output("hypotheses")
+        model_data = self._load_step_output("model_recommendation")
+        variable_data = self._load_step_output("variable_selection")
+
+        # ── Step 4.5: 数据获取 ──
+        print(f"\n{'─'*60}")
+        print(f"[ResearchAgent] Step 4.5: 数据获取")
+        print(f"{'─'*60}")
+        if not data_path:
+            data_path = os.path.abspath("workspace/data/panel_data.csv")
+        if not os.path.exists(data_path):
+            print(f"[ResearchAgent] ⚠ 数据文件不存在: {data_path}")
+            print(f"[ResearchAgent] 请先获取数据，或将数据放入 workspace/data/")
+            self.context["data_acquired"] = False
+            self.state_manager.save_state(self.context)
+            return {"success": False, "error": "data_not_found", "expected_path": data_path}
+        print(f"[ResearchAgent] 数据就绪: {data_path}")
+        self.context["data_path"] = data_path
+        self.context["data_acquired"] = True
+
+        # ── Step 5: 实证回归 ──
+        print(f"\n{'─'*60}")
+        print(f"[ResearchAgent] Step 5: 实证回归")
+        print(f"{'─'*60}")
+
+        regression_results = self._run_regression(data_path, hypothesis_data, model_data, variable_data)
+        if not regression_results.get("success"):
+            print(f"[ResearchAgent] ⚠ 回归执行失败: {regression_results.get('error', '')}")
+            # 即使回归失败，也可以尝试用蓝图+文献证据继续（降级模式）
+            regression_results["success"] = False
+
+        # ── Step 4.6: 回归诊断与决策 ──
+        print(f"\n{'─'*60}")
+        print(f"[ResearchAgent] Step 4.6: 回归诊断与决策")
+        print(f"{'─'*60}")
+
+        from skills.regression_diagnosis import RegressionDiagnosisEngine
+        engine = RegressionDiagnosisEngine()
+
+        hypotheses = self._parse_hypotheses_from_output(hypothesis_data)
+        diagnosis_result = engine.diagnose_and_decide(
+            regression_results=regression_results,
+            hypotheses=hypotheses,
+            paper_summaries=paper_summaries,
+            literature_evidence=variable_data.get("markdown", "")[:3000] if variable_data else "",
+            backend=backend,
+            model=model,
+        )
+
+        diagnosis = diagnosis_result.get("diagnosis", {})
+        decision = diagnosis_result.get("decision", {})
+
+        # 保存诊断
+        diag_path = os.path.abspath("workspace/regression/diagnosis.json")
+        with open(diag_path, "w", encoding="utf-8") as f:
+            json.dump(diagnosis, f, ensure_ascii=False, indent=2)
+
+        # ── 决策树 ──
+        decision_type = decision.get("decision_type", "PROCEED")
+        print(f"\n[ResearchAgent] ╔══════════════════════════════════════════╗")
+        print(f"[ResearchAgent] ║  决策: {decision_type}                    ║")
+        print(f"[ResearchAgent] ║  诊断: {diagnosis.get('overall_verdict', '?')}")
+        print(f"[ResearchAgent] ╚══════════════════════════════════════════╝")
+
+        if decision_type == "RECONSIDER_TOPIC":
+            print(f"\n[ResearchAgent] ┌{'─'*50}")
+            print(f"[ResearchAgent] │ ⚠ 回归结果完全不支撑假设体系")
+            print(f"[ResearchAgent] │ 建议回退到 Step 0 重新选题，或考虑:")
+            print(f"[ResearchAgent] │ '不存在因果'本身作为研究发现")
+            print(f"[ResearchAgent] │ 诊断原因: {diagnosis.get('possible_causes', [])}")
+            print(f"[ResearchAgent] └{'─'*50}")
+            return {
+                "success": False,
+                "verdict": "reconsider_topic",
+                "diagnosis": diagnosis,
+                "decision": decision,
+                "message": "回归结果不支撑。建议运行 /论文写作 重新选题，或手动修改假设体系。",
+            }
+
+        if decision_type in ("REVISE_HYPOTHESES", "REVISE_MODEL", "ACQUIRE_DATA"):
+            fallback = decision.get("target_step", "2")
+            instructions = decision.get("revision_instructions", {})
+            print(f"\n[ResearchAgent] ┌{'─'*50}")
+            print(f"[ResearchAgent] │ ⚠ 需要回退到 Step {fallback}")
+            print(f"[ResearchAgent] │ 修正内容: {json.dumps(instructions, ensure_ascii=False)[:300]}")
+            print(f"[ResearchAgent] │ 请根据诊断结果手动调整后重新运行 /论文写作")
+            print(f"[ResearchAgent] └{'─'*50}")
+            return {
+                "success": False,
+                "verdict": "revision_needed",
+                "diagnosis": diagnosis,
+                "decision": decision,
+                "fallback_step": fallback,
+                "revision_instructions": instructions,
+            }
+
+        # ── PROCEED: Step 6-8 ──
+        regression_text = self._format_regression_for_blueprint(regression_results, diagnosis)
+
+        # Step 6: 蓝图
+        print(f"\n{'─'*60}")
+        print(f"[ResearchAgent] Step 6: 生成论文写作蓝图 (基于回归结果)")
+        print(f"{'─'*60}")
+
+        blueprint_result = self.writer.generate_blueprint(
+            paper_summaries=paper_summaries,
+            cross_synthesis=cross_synthesis,
+            empirical_results=empirical,
+            topic_info=topic_info,
+            hypothesis_info=hypothesis_info,
+            model_info=model_info,
+            variable_info=variable_info,
+            regression_results=regression_text,
+            backend=backend,
+            model=model,
+        )
+
+        if not blueprint_result.get("success"):
+            return {"success": False, "error": "蓝图生成失败", "diagnosis": diagnosis}
+
+        blueprint = blueprint_result["blueprint"]
+        # ★ 注入回归诊断结果到蓝图
+        blueprint["regression_diagnosis"] = diagnosis
+
+        blueprint_path = os.path.abspath("workspace/writing/paper_blueprint.json")
+        with open(blueprint_path, "w", encoding="utf-8") as f:
+            json.dump(blueprint, f, ensure_ascii=False, indent=2)
+
+        # Step 7-8: 逐节撰写 + 审查
+        writing_result = self.writer.write_by_blueprint(
+            blueprint=blueprint,
+            paper_summaries=paper_summaries,
+            cross_synthesis=cross_synthesis,
+            section_analyses=section_analyses,
+            regression_results=regression_text,
+            backend=backend,
+            model=model,
+        )
+
+        final_result = self.writer.audit_and_assemble(
+            sections=writing_result.get("sections", {}),
+            blueprint=blueprint,
+            backend=backend,
+            model=model,
+        )
+
+        print(f"\n[ResearchAgent] ╔══════════════════════════════════════════╗")
+        print(f"[ResearchAgent] ║  ★ v3 流水线完成                         ║")
+        print(f"[ResearchAgent] ║  回归判定: {diagnosis.get('overall_verdict', '?')}")
+        print(f"[ResearchAgent] ║  最终论文: {final_result.get('full_paper', {}).get('path', 'N/A')}")
+        print(f"[ResearchAgent] ╚══════════════════════════════════════════╝")
+
+        self.context["writing_v3_completed"] = True
+        self.state_manager.save_state(self.context)
+
+        return {
+            "success": True,
+            "diagnosis": diagnosis,
+            "decision": decision,
+            "blueprint": blueprint,
+            "writing": writing_result,
+            "final": final_result,
+        }
+
+    def _run_regression(self, data_path: str, hypothesis_data: dict, model_data: dict, variable_data: dict) -> dict:
+        """
+        执行实证回归。优先使用 Stata MCP，回退到 Python regression_lib。
+        返回标准化的回归结果 dict。
+        """
+        # 尝试从 hypothesis/variable 数据中提取变量信息
+        y_var = ""
+        x_var = ""
+        controls = []
+
+        if variable_data:
+            vd_text = variable_data.get("markdown", "")
+            # 简单提取 Y 和 X
+            y_match = re.search(r'[Yy]\s*(?:变量|variable)?[:：=]\s*(\w+)', vd_text)
+            x_match = re.search(r'[Xx]\s*(?:变量|variable)?[:：=]\s*(\w+)', vd_text)
+            if y_match:
+                y_var = y_match.group(1)
+            if x_match:
+                x_var = x_match.group(1)
+
+        if not y_var or not x_var:
+            print(f"[ResearchAgent] 无法从变量选取中提取 Y/X，使用默认值")
+            return {"success": False, "error": "无法确定 Y 和 X 变量。请在变量选取步骤中明确定义。"}
+
+        print(f"[ResearchAgent] 回归: {y_var} ~ {x_var} (+ controls)")
+        print(f"[ResearchAgent] 数据: {data_path}")
+
+        # 尝试使用 Python regression_lib
+        try:
+            from scripts.regression_lib import run_model
+            result = run_model("panel_fe", data_path=data_path, y_var=y_var, x_vars=[x_var])
+            if result.get("success"):
+                result["y_var"] = y_var
+                result["x_var"] = x_var
+                return result
+        except Exception as e:
+            print(f"[ResearchAgent] Python 回归执行失败: {e}")
+
+        # 回退：如果存在 Stata MCP，使用 Stata
+        # (实际实现中，这里会调用 Stata MCP)
+        return {"success": False, "error": "回归未能执行。请手动运行回归后将结果粘贴到 workspace/regression/results.json"}
+
+    @staticmethod
+    def _parse_hypotheses_from_output(hypothesis_data: dict) -> list:
+        """从假设步骤的产出中解析假设列表"""
+        if not hypothesis_data:
+            return []
+        text = hypothesis_data.get("markdown", "")
+        hypotheses = []
+        # 简单的正则提取
+        for m in re.finditer(r'\*\*?(H\d)\*\*?[:：]\s*(.+?)(?=\n|$)', text):
+            hypotheses.append({"id": m.group(1), "claim": m.group(2).strip()})
+        return hypotheses
+
+    @staticmethod
+    def _format_regression_for_blueprint(regression_results: dict, diagnosis: dict) -> str:
+        """将回归结果和诊断格式化为蓝图 Prompt 可用的文本"""
+        parts = []
+        parts.append("## 实际回归结果\n")
+        parts.append(json.dumps(regression_results, ensure_ascii=False, indent=2)[:5000])
+        parts.append("\n\n## 回归诊断\n")
+        parts.append(f"整体判定: {diagnosis.get('overall_verdict', '?')}")
+        parts.append(f"\n支撑: {diagnosis.get('supported_count', 0)} | "
+                     f"部分: {diagnosis.get('partial_count', 0)} | "
+                     f"拒绝: {diagnosis.get('rejected_count', 0)}")
+        parts.append("\n\n## 可写作的发现\n")
+        for wf in diagnosis.get("writable_findings", []):
+            if isinstance(wf, dict):
+                parts.append(f"- [{wf.get('evidence_level', '?')}] {wf.get('finding', '')}")
+        return "\n".join(parts)
+
+    @staticmethod
+    def _load_step_output(filename: str) -> dict:
+        """加载前几步的产出文件"""
+        path = os.path.join(os.path.abspath("workspace/writing"), f"{filename}.md")
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return {"markdown": f.read(), "path": path}
+        return None
+
+    # ═══════════════════════════════════════════════════════════
+
     def _collect_section_analyses_for_all_papers(self) -> dict:
         """
         收集所有论文的 11 维度分析 JSON，按论文标题索引。

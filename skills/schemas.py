@@ -1354,6 +1354,113 @@ class CrossClusterInnovationReport:
 
 
 # ═══════════════════════════════════════════════════════════════
+# 回归诊断与决策 Schema — 回归结果驱动的写作方向决策
+# ═══════════════════════════════════════════════════════════════
+
+@dataclass
+class HypothesisTestResult:
+    """
+    单条假设的实证检验结果。
+    回归跑完后，每条假设都会被评估为以下状态之一。
+    """
+    hypothesis_id: str = ""                    # H1, H2, ...
+    hypothesis_claim: str = ""                 # 假设原文
+    expected_direction: str = ""               # 预期方向（+/-）
+    actual_coefficient: Optional[float] = None  # 实际系数
+    actual_standard_error: Optional[float] = None
+    actual_significance: str = ""              # p<0.01 / p<0.05 / p<0.10 / 不显著
+    actual_direction: str = ""                 # 实际方向（+/-/不显著）
+    direction_match: bool = True               # 方向是否与预期一致
+    coefficient_plausible: bool = True         # 系数大小是否合理（不是异常值）
+    verdict: str = ""                          # 支撑/不支撑/部分支撑/反向显著
+    interpretation: str = ""                   # 对结果的简要解释
+
+
+@dataclass
+class RegressionDiagnosis:
+    """
+    回归结果的完整诊断——回答"这个结果意味着什么？下一步该做什么？"
+
+    不是简单的"显著or不显著"——而是：
+    1. 每条假设的状态
+    2. 如果不支撑，最可能的原因是什么
+    3. 基于原因，自动推荐回退路径
+    4. 无论结果如何，哪些内容可以用于写作
+    """
+    # 元信息
+    paper_title: str = ""
+    generated_at: str = ""
+    total_hypotheses: int = 0
+    total_tested: int = 0
+
+    # 每条假设的结果
+    hypothesis_results: List[HypothesisTestResult] = field(default_factory=list)
+
+    # 整体判定
+    supported_count: int = 0                   # 被支撑的假设数
+    partial_count: int = 0                     # 部分支撑的假设数
+    rejected_count: int = 0                    # 被拒绝的假设数
+    overall_verdict: str = ""                  # 全部支撑 / 大部分支撑 / 部分支撑 / 大部分不支撑 / 完全不支撑
+
+    # 如果不支撑，推断原因（多选排序）
+    possible_causes: List[Dict[str, Any]] = field(default_factory=list)
+    # [{"cause": "数据问题", "likelihood": "高", "evidence": "样本量过小/异常值未处理/测度误差"},
+    #  {"cause": "模型误设", "likelihood": "中", "evidence": "遗漏关键控制变量/FE层级不当"},
+    #  {"cause": "假设错误", "likelihood": "低", "evidence": "理论机制在新的制度情境下不适用"}]
+
+    # 自动决策
+    recommended_action: str = ""               # proceed / revise_hypotheses / revise_model / acquire_new_data / reconsider_topic
+    action_rationale: str = ""                 # 推荐理由
+    fallback_step: str = ""                    # 回退到哪个步骤: "2"=假设, "3"=模型, "4"=变量, "4.5"=数据, "0"=选题
+    hypotheses_to_revise: List[str] = field(default_factory=list)  # 需要修正的假设ID
+    hypotheses_to_drop: List[str] = field(default_factory=list)    # 需要放弃的假设ID
+    variables_to_add: List[str] = field(default_factory=list)      # 可能遗漏的变量
+    model_adjustments: List[str] = field(default_factory=list)     # 模型调整建议
+
+    # 符号反向的特殊处理（往往是最有价值的发现）
+    reversed_hypotheses: List[Dict[str, Any]] = field(default_factory=list)
+    # [{"hypothesis_id": "H2", "expected": "+", "actual": "-",
+    #   "new_theory_interpretation": "智慧城市反而加剧了数字鸿沟，导致..."}]
+    reversed_interpretation: str = ""          # 如果存在反向结果，新的理论解释
+
+    # ★ 无论如何，有哪些内容可以进入写作
+    writable_findings: List[Dict[str, Any]] = field(default_factory=list)
+    # [{"finding": "H1得到支撑，效应量为X", "writing_section": "5.1",
+    #   "evidence_level": "强"},
+    #  {"finding": "H2不显著，可能因为样本量不足", "writing_section": "5.4",
+    #   "evidence_level": "弱，需作为局限讨论"}]
+
+    # 质量元数据
+    diagnosis_quality_score: float = 0.0       # 诊断本身的质量分
+
+
+@dataclass
+class RegressionDecision:
+    """
+    基于回归诊断的结构化决策——告诉系统下一步做什么。
+
+    这是一个明确的指令，不依赖 LLM 的"判断"。
+    """
+    # 决策类型
+    decision_type: str = ""                    # PROCEED / REVISE_HYPOTHESES / REVISE_MODEL / REVISE_VARIABLES / ACQUIRE_DATA / RECONSIDER_TOPIC
+
+    # 如果 PROCEED：可以直接生成蓝图
+    blueprint_ready: bool = False
+
+    # 如果 REVISE_*：具体修正内容
+    revision_instructions: Dict[str, Any] = field(default_factory=dict)
+    # {"hypotheses_to_modify": ["H2"], "new_model_spec": "...", "variables_to_add": [...]}
+    target_step: str = ""                      # 回退到哪个步骤
+
+    # 推荐运行的新回归（如有）
+    suggested_regressions: List[Dict[str, Any]] = field(default_factory=list)
+
+    # 元数据
+    diagnosis_summary: str = ""
+    decision_confidence: str = ""              # 高/中/低
+
+
+# ═══════════════════════════════════════════════════════════════
 # 桥梁发现辅助
 # ═══════════════════════════════════════════════════════════════
 

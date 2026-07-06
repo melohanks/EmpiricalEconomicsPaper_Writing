@@ -38,54 +38,104 @@
 ## 完整工作流
 
 ```
-                           外部工具集成
-                               │
-┌─ 阶段〇：论文获取 ───────────┼─────────────────────────────┐
-│  Zotero MCP 搜索/导入       │  Zotero 本地库              │
-│  提取元数据+PDF全文          │  zotero_extract.py          │
-│  → workspace/papers/        │                             │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ 阶段一+二：文献综述分析 ────┼─────────────────────────────┐
-│  Step A: 每篇论文11維度分析  │  Anthropic/OpenAI LLM       │
-│  Step B: 跨论文对比矩阵      │  humanizer-zh (去AI味)      │
-│  Step C: 完整文献综述        │                             │
-│  → workspace/analysis/      │                             │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ 阶段三：实证方法论分析 ─────┼─────────────────────────────┐
-│  四维度: 假设/方法/变量/结果 │  Anthropic/OpenAI LLM       │
-│  → workspace/analysis/<论文>/empirical.*  │               │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ Step 0: 跨集群桥梁发现 ────┼─────────────────────────────┐
-│  理论统合/机制迁移/方法互鉴  │  LLM 5维分析框架            │
-│  → 创新题目候选（排序）      │                             │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ 阶段四：论文写作 ──────────┼─────────────────────────────┐
-│  Step 1: 创新选题           │  Anthropic/OpenAI LLM       │
-│  Step 2: 假设推导           │                             │
-│  Step 3: 模型推荐           │                             │
-│  Step 4: 变量选取           │                             │
-│  Step 5: 结构化蓝图         │                             │
-│  Step 6a-6e: 逐节撰写       │                             │
-│  Step 7: 三级一致性审查     │                             │
-│  Step 8: 修正定稿           │                             │
-│  → workspace/writing/       │                             │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ 阶段五：实证回归 ──────────┼─────────────────────────────┐
-│  数据检查 → .do文件 → 执行  │  Stata MCP                  │
-│  → 结果回收 + 解读          │  regression_lib (Python)    │
-└─────────────────────────────┼─────────────────────────────┘
-                              │
-┌─ 阶段六：导出与演示 ────────┼─────────────────────────────┐
-│  Word 导出 (DOCX)           │  cli-anything-wps MCP       │
-│  LaTeX 编译 (PDF)           │  xelatex                    │
-│  组会 PPT 生成              │  ppt-master                 │
-└─────────────────────────────┴─────────────────────────────┘
+                             外部工具集成
+                                 │
+┌─ 阶段〇：论文获取 ─────────────┼───────────────────────────┐
+│  Zotero MCP 搜索/导入         │  Zotero 本地库            │
+│  提取元数据+PDF全文            │  zotero_extract.py        │
+│  → workspace/papers/          │                           │
+└───────────────────────────────┼───────────────────────────┘
+                                │
+┌─ 阶段一+二：文献综述分析 ──────┼───────────────────────────┐
+│  Step A: 每篇论文11维度分析    │  Anthropic/OpenAI LLM     │
+│  Step B: 跨论文对比矩阵        │  humanizer-zh (去AI味)    │
+│  Step C: 完整文献综述          │                           │
+│  → workspace/analysis/        │                           │
+└───────────────────────────────┼───────────────────────────┘
+                                │
+┌─ 阶段三：实证方法论分析 ───────┼───────────────────────────┐
+│  四维度: 假设/方法/变量/结果   │  Anthropic/OpenAI LLM     │
+│  → workspace/analysis/<论文>/empirical.* │                │
+└───────────────────────────────┼───────────────────────────┘
+                                │
+┌─ Step 0: 跨集群桥梁发现 ──────┼───────────────────────────┐
+│  理论统合/机制迁移/方法互鉴    │  LLM 5维分析框架          │
+│  → 创新题目候选（排序）        │                           │
+└───────────────────────────────┼───────────────────────────┘
+                                │
+┌─ 论文写作 ────────────────────┼───────────────────────────┐
+│  Step 1: 创新选题             │  Anthropic/OpenAI LLM     │
+│  Step 2: 假设推导             │                           │
+│  Step 3: 模型推荐             │                           │
+│  Step 4: 变量选取             │                           │
+│                               │                           │
+│  Step 4.5: ★ 数据获取         │  数据源 API / CSMAR / 手动 │
+│                               │                           │
+│  Step 5: ★ 实证回归 (插入)    │  Stata MCP / regression_lib│
+│  → 回归结果                   │                           │
+│                               │                           │
+│  Step 4.6: ★ 回归诊断与决策   │  RegressionDiagnosisEngine│
+│  ┌────────────────────────┐   │                           │
+│  │ 全部支撑 → Step 6 蓝图  │   │                           │
+│  │ 部分支撑 → Step 2'修正 │   │                           │
+│  │ 符号相反 → Step 2'重推 │   │                           │
+│  │ 不支撑   → 诊断原因回退 │   │                           │
+│  │ 完全不支撑 → Step 0 重选│   │                           │
+│  └────────────────────────┘   │                           │
+│                               │                           │
+│  Step 6: 结构化蓝图 (基于结果) │  Anthropic/OpenAI LLM     │
+│  Step 7a-7e: 逐节撰写         │                           │
+│  Step 8: 三级一致性审查       │                           │
+│  Step 9: 修正定稿             │                           │
+│  → workspace/writing/         │                           │
+└───────────────────────────────┼───────────────────────────┘
+                                │
+┌─ 导出与演示 ──────────────────┼───────────────────────────┐
+│  Word 导出 (DOCX)             │  cli-anything-wps MCP     │
+│  LaTeX 编译 (PDF)             │  xelatex                  │
+│  组会 PPT 生成                │  ppt-master               │
+└───────────────────────────────┴───────────────────────────┘
 ```
+
+### 回归诊断决策树（Step 4.6 的核心逻辑）
+
+这是系统最关键的设计：**在蓝图生成之前，先让数据告诉你真相。**
+
+```
+回归结果
+    │
+    ├── ✅ 全部假设支撑
+    │   └── → PROCEED: 直接生成蓝图，进入逐节撰写
+    │       writable_findings: 全部显著发现 + 强证据
+    │
+    ├── ⚠️ 大部分支撑 (核心假设成立，部分机制不显著)
+    │   └── → PROCEED: 保留已支撑的，不显著机制作为"局限性"写入
+    │       writable_findings: 核心发现(强) + 不显著机制(弱, 写入5.4)
+    │
+    ├── ⚠️ 符号相反 (主效应显著但方向与预期相反)
+    │   └── → REVISE_HYPOTHESES: 回退 Step 2，重新理论推导
+    │       "发现反向效应"往往比"证实预期"更有学术价值
+    │       writable_findings: 反向结果(强) + 新理论解释
+    │
+    ├── ❌ 大部分不支撑 (主效应不显著)
+    │   ├── 数据问题 (样本量/异常值/测度)
+    │   │   └── → ACQUIRE_DATA: 回退 Step 4.5，增加/清洗数据
+    │   ├── 模型误设 (遗漏变量/FE/函数形式)
+    │   │   └── → REVISE_MODEL: 回退 Step 3，调整模型
+    │   └── 假设错误 (理论不适用)
+    │       └── → REVISE_HYPOTHESES: 回退 Step 2
+    │
+    └── ❌ 完全不支撑 (全部不显著 + 诊断无解)
+        └── → RECONSIDER_TOPIC: 回退 Step 0
+            可考虑将"不存在因果"本身作为贡献
+```
+
+**核心原则**：
+
+1. **不显著也是发现** — "未发现证据支持 H2"是有价值的科学信息
+2. **符号相反是更大发现** — 如果你的数据说 X 抑制了 Y，而文献都说 X 促进了 Y，你可能发现了一个新的调节机制
+3. **数据驱动写作方向** — 论文写的是你发现了什么，不是你期望发现什么
+4. **可写作内容总是存在** — 即使全部不显著，也可以讨论"为什么这个看似合理的假设不成立"
 
 ---
 
@@ -97,22 +147,17 @@
 
 **作用**：驱动所有分析、写作、审查步骤的 AI 推理。
 
-| 后端 | 推荐场景 | 月费 |
-|------|---------|------|
-| **DeepSeek API** | 推荐——性价比高，中文能力强，兼容 Anthropic 格式 | ~¥10-50 |
-| **Anthropic 官方** | Claude 模型，推理能力最强 | ~$20-200 |
-| **OpenAI / 兼容** | GPT-4o / 通义千问 / 等 | 按用量 |
+| 后端 | 推荐场景 | 月费 | 获取 |
+|------|---------|------|------|
+| **DeepSeek API** | 推荐——性价比高，中文能力强 | ~¥10-50 | [platform.deepseek.com](https://platform.deepseek.com/) |
+| **Anthropic 官方** | Claude 模型，推理能力最强 | ~$20-200 | [console.anthropic.com](https://console.anthropic.com/) |
+| **OpenAI / 兼容** | GPT-4o / 通义千问 | 按用量 | [platform.openai.com](https://platform.openai.com/) |
 
 **安装**：
 
 ```bash
-# Python SDK
 pip install anthropic>=0.30.0 openai>=1.0.0
-
-# 配置 API Key（三选一）
-python scripts/config_wizard.py           # 交互式向导
-python scripts/config_wizard.py --quick   # DeepSeek 快速配置
-cp .env.example .env && vim .env         # 手动编辑
+python scripts/config_wizard.py           # 交互式配置
 ```
 
 **认证方式**：API Key 保存在本地 `.env` 文件中（已在 `.gitignore` 中排除）。
@@ -121,28 +166,28 @@ cp .env.example .env && vim .env         # 手动编辑
 
 ### 2. Zotero + zotero-mcp（论文获取，推荐）
 
+> **GitHub**: [54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp) — 全功能 Zotero MCP Server（语义搜索 / PDF 全文 / SciTe / 标注）
+
 **作用**：
 - 从 Zotero 本地/云端库搜索论文
 - 通过 DOI 自动导入论文元数据
 - 提取 PDF 全文文本（用于 LLM 分析）
-- 提取论文的附件、标签、笔记
+- 语义搜索（ChromaDB + embeddings）
+- PDF 页面布局分析 / 标注管理
 
 **安装**：
 
 ```bash
-# 1. 安装 Zotero（桌面端）
+# 1. 安装 Zotero 桌面端
 # 下载: https://www.zotero.org/download/
 
-# 2. 安装 Better BibTeX 插件（可选，用于引用键管理）
-# https://retorque.re/zotero-better-bibtex/
-
-# 3. 获取 Zotero API Key（云端模式需要）
+# 2. 获取 Zotero API Key（云端模式）
 # https://www.zotero.org/settings/keys → "Create new private key"
 
-# 4. 安装 zotero-mcp
+# 3. 安装 zotero-mcp
 pip install zotero-mcp-server
-# 或: pip install zotero-mcp-server[pdf]   (含 PDF 全文提取依赖)
-# 或: pip install zotero-mcp-server[semantic] (含语义搜索)
+# 完整安装（含 PDF + 语义搜索）:
+pip install zotero-mcp-server[pdf,semantic]
 ```
 
 **配置**：
@@ -164,7 +209,7 @@ pip install zotero-mcp-server
 }
 ```
 
-**使用**：在 Claude Code 中运行 `/论文获取 智慧城市 试点`。
+**使用**：在 Claude Code 中运行 `/论文获取 论文名称关键词`。
 
 **备选方案**（不使用 Zotero）：直接将论文元数据 JSON 放入 `workspace/papers/metadata.json`。
 
@@ -172,10 +217,11 @@ pip install zotero-mcp-server
 
 ### 3. Stata MCP（实证回归）
 
+> **VSCode 扩展**: [deepecon.stata-mcp](https://marketplace.visualstudio.com/items?itemName=deepecon.stata-mcp) — Stata 与 MCP 的桥接扩展
+
 **作用**：
-- 在 Stata 中执行 `.do` 文件
-- 返回回归结果和日志
-- 支持多 session 并行执行（同时跑多个模型）
+- 在 Stata 中执行 `.do` 文件，返回结果和日志
+- 支持多 session 并行执行
 
 **安装**：
 
@@ -183,9 +229,8 @@ pip install zotero-mcp-server
 # 1. 安装 Stata 17+（需正版授权）
 # https://www.stata.com/
 
-# 2. 安装 Stata MCP 插件（VSCode 扩展）
-# 在 VSCode 中搜索 "stata-mcp" 并安装
-# 或手动安装: pip install stata-mcp-server
+# 2. 在 VSCode 扩展市场搜索 "stata-mcp" 并安装
+# 或: pip install stata-mcp-server
 ```
 
 **配置**：
@@ -211,65 +256,29 @@ pip install zotero-mcp-server
 
 ### 4. WPS Office MCP（文档导出）
 
+> **GitHub**: [yb2460/harness-anything](https://github.com/yb2460/harness-anything) — 47 CLI 命令操控 WPS/Microsoft Office
+> **跨平台版**: [yb2460/harness-anything-mac](https://github.com/yb2460/harness-anything-mac) — macOS/Linux 回退到 LibreOffice
+
 **作用**：
-- 创建/编辑/导出 Word 文档 (DOCX)
-- 创建/编辑 Excel 表格 (XLSX)
-- 创建/导出 PDF
-- 格式化文档（字体、表格、页码）
-
-系统集成了两个互补的 WPS MCP：
-
-| MCP | 用途 | 安装 |
-|-----|------|------|
-| **cli-anything-wps** | Writer/Calc 文档创建、导出 DOCX/PDF | `pip install cli-anything-wps` |
-| **wps-editor** | 更细粒度的文档编辑（样式、表格、图片） | 独立安装包 |
+- 创建/编辑/导出 Word 文档 (DOCX)、Excel (XLSX)、PDF
+- 学术预设模板（academic/consultant/business/tech）
+- 5 维度文档质量审查
 
 **安装**：
 
 ```bash
-# cli-anything-wps: 文档级操作（创建、导出、预设应用）
-pip install cli-anything-wps
-
-# wps-editor: 段落/单元格级操作（读、写、样式设置）
-# 从 https://github.com/... 克隆并安装
-git clone <wps-editor-repo-url>
-pip install -e wps-editor-mcp/
+pip install git+https://github.com/yb2460/cli-anything-wps.git
 ```
 
-**配置**：
-
-编辑 `.mcp.json`（从 `.mcp.json.example` 复制）：
-
-```json
-{
-  "mcpServers": {
-    "cli-anything-wps": {
-      "command": "python",
-      "args": ["<CLI_ANYTHING_WPS_INSTALL_PATH>/mcp_server.py"]
-    },
-    "wps-editor": {
-      "command": "python",
-      "args": ["<WPS_EDITOR_INSTALL_PATH>/server.py"]
-    }
-  }
-}
-```
-
-**使用**：在 Claude Code 中运行 `/导出Word`。
-
-**备选方案**（不使用 WPS）：系统也可通过 `scripts/md_to_docx.py` 使用 python-docx 直接生成 DOCX。
+**备选方案**：`python scripts/md_to_docx.py`（纯 python-docx，无需 WPS）
 
 ---
 
 ### 5. ppt-master（组会汇报 PPT）
 
-**作用**：
-- 将文献综述/分析数据转化为专业学术 PPT
-- 支持多种模板（学术答辩/商务/现代等）
-- 自动生成 SVG 图表和 PPTX 动画
-- 生成演讲稿
+> **GitHub**: [yb2460/harness-anything](https://github.com/yb2460/harness-anything) — 内置 ppt-master 技能（SVG → PPTX 转换 / 学术模板 / AI 图表生成）
 
-**已内置于** `.claude/skills/ppt-master/`，无需额外安装。
+**已内置于** `.claude/skills/ppt-master/`。在 Claude Code 中运行 `/组会汇报幻灯片`。
 
 **配置**（可选——使用云端图像生成）：
 
@@ -285,50 +294,35 @@ cp .claude/skills/ppt-master/.env.example .claude/skills/ppt-master/.env
 
 ### 6. humanizer-zh（去 AI 味，可选）
 
-**作用**：
-- 检测并修复 AI 写作痕迹（夸大象征、宣传性语言、过度连接词等）
-- 使分析报告读起来更像人类学术写作
-
-**已内置于 Claude Code skill 系统**，无独立安装步骤。
-
-**使用**：在 Claude Code 中运行 `/humanizer-zh`，或在 `/文献综述` 后自动执行。
-
----
+**已内置于 Claude Code skill 系统**。在 `/文献综述` 后自动执行。
 
 ### 7. ChromaDB（语义搜索，可选）
 
-**作用**：
-- 为所有分析文件构建向量索引
-- 支持语义搜索（"DID 方法的标准误聚类层级"）
-
-**安装**：
+> **GitHub**: [chroma-core/chroma](https://github.com/chroma-core/chroma) — AI-native 开源向量数据库
 
 ```bash
 pip install chromadb
 ```
 
-**使用**：安装后，系统在构建知识索引时自动启用向量存储。可通过 `KnowledgeIndex.semantic_search()` 查询。
-
 ---
 
-### 工具依赖总览
+### 工具依赖与 GitHub 链接总览
+
+| 工具 | 作用 | 安装 | 仓库 |
+|------|------|------|------|
+| **DeepSeek API** | LLM 推理（推荐） | `pip install anthropic` | [platform.deepseek.com](https://platform.deepseek.com/) |
+| **Anthropic API** | LLM 推理 | — | [console.anthropic.com](https://console.anthropic.com/) |
+| **zotero-mcp** | 论文获取/全文提取 | `pip install zotero-mcp-server` | [54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp) |
+| **Zotero 桌面端** | 文献管理 | [下载](https://www.zotero.org/download/) | [zotero/zotero](https://github.com/zotero/zotero) |
+| **stata-mcp** | Stata 回归执行 | VSCode 扩展 | [deepecon.stata-mcp](https://marketplace.visualstudio.com/items?itemName=deepecon.stata-mcp) |
+| **cli-anything-wps** | Word/PDF 导出 | `pip install git+https://github.com/yb2460/cli-anything-wps.git` | [yb2460/harness-anything](https://github.com/yb2460/harness-anything) |
+| **ppt-master** | 组会 PPT 生成 | 内置 | [yb2460/harness-anything](https://github.com/yb2460/harness-anything) |
+| **ChromaDB** | 语义搜索 | `pip install chromadb` | [chroma-core/chroma](https://github.com/chroma-core/chroma) |
 
 ```
-必需:
-  ├── Python 3.10+
-  ├── anthropic + openai SDK
-  └── .env 配置 (LLM API Key)
-
-推荐:
-  ├── Zotero 桌面端 + zotero-mcp        → 论文获取与全文提取
-  ├── Stata 17+ + stata-mcp             → 回归执行
-  └── cli-anything-wps + WPS Office     → 文档导出
-
-可选:
-  ├── wps-editor MCP                    → 精细化文档编辑
-  ├── humanizer-zh                      → 去 AI 写作痕迹
-  ├── ChromaDB                          → 语义搜索
-  └── ppt-master 图像生成 API           → PPT 中的 AI 图表
+必需:   Python 3.10+ + anthropic SDK + .env
+推荐:   Zotero + zotero-mcp + Stata + cli-anything-wps
+可选:   ChromaDB
 ```
 
 ---
@@ -390,7 +384,7 @@ pip install chromadb          # 语义搜索
 /配置LLM
 
 # 2. 获取论文
-/论文获取 智慧城市 试点 准自然实验
+/论文获取 论文名称 关键字 X Y
 
 # 3. 运行分析
 /文献综述          # 11维度分析 + 跨论文对比 + 文献综述
@@ -421,7 +415,7 @@ pip install chromadb          # 语义搜索
 | `/论文获取` | 〇 | Zotero 搜索/导入论文 | Zotero MCP |
 | `/文献综述` | 一+二 | 11维度分析 + 跨论文对比 + 综述 | LLM + humanizer-zh |
 | `/实证分析` | 三 | 四维实证方法论分析 | LLM |
-| `/论文写作` | 四 | 选题→假设→模型→变量→蓝图→逐节撰写→审查 | LLM |
+| `/论文写作` | 四 | 选题→假设→模型→变量→数据→回归→诊断→蓝图→逐节撰写→审查 | LLM + Stata/Python + 诊断引擎 |
 | `/实证回归` | 五 | 数据检查 → Stata .do → 执行 → 结果回收 | Stata MCP / regression_lib |
 | `/组会汇报幻灯片` | 六 | 生成学术 PPTX + 演讲稿 | ppt-master |
 | `/导出Word` | 六 | 文献综述/论文导出为 DOCX | cli-anything-wps MCP |
@@ -553,9 +547,6 @@ cp .mcp.json.example .mcp.json
 
 可以。将论文元数据手动放入 `workspace/papers/metadata.json`（格式：`[{"title": "...", "authors": "...", "abstract": "..."}]`），然后直接运行 `/文献综述`。
 
-### Q: 不使用 Stata 可以跑回归吗？
-
-可以。系统内置 Python 回归库 `scripts/regression_lib/`，支持双向固定效应、DID、IV-2SLS、RDD、中介效应等 8 个模型（基于 statsmodels/linearmodels）。
 
 ### Q: 不用 WPS 可以导出 Word 吗？
 
@@ -570,20 +561,82 @@ python scripts/config_wizard.py
 
 然后就可以用 `/文献综述` 和 `/论文写作`。
 
-### Q: API Key 安全吗？
-
-- `.env` 文件在 `.gitignore` 中，不会被提交
-- `.mcp.json` 在 `.gitignore` 中，不会被提交
-- `.claude/settings.local.json` 在 `.gitignore` 中，不会被提交
-- 系统只通过环境变量读取 Key，不会硬编码在代码中
 
 ### Q: 系统产出保存在哪里？
 
-全部在 `workspace/` 目录中（已在 `.gitignore` 中排除）：
+全部在 `workspace/` 目录中（执行完命令会自动生成）：
 - `workspace/analysis/<论文>/` — 每篇论文的 11 维分析
 - `workspace/writing/` — 论文写作产出
 - `workspace/regression/` — 回归结果
 - `workspace/projects/<项目>/` — 已完成项目的归档
+
+### Q: 数据是系统自动获取的吗？
+
+**不是**。系统**不会**自动替你从数据库下载数据，但它会在变量选取完成后，帮你做好三件事：
+
+**1. 告诉你需要哪些数据**
+
+Step 4（变量选取）完成后，系统会生成一份变量清单：
+
+```
+被解释变量 Y: 城市宜居度指数
+  → 测度: 综合指数法（经济/社会/环境三维度）
+  → 数据来源建议: 中国城市统计年鉴 / EPS 数据平台
+
+核心解释变量 X: 智慧城市试点
+  → 测度: 虚拟变量（0/1，试点城市=1）
+  → 数据来源: 住建部公开名单
+
+控制变量: GDP、人口密度、财政支出...
+  → 数据来源: 中国城市统计年鉴
+```
+
+**2. 告诉你从哪个数据库获取**
+
+系统内置了变量→数据源的映射表（`skills/data_handler.py`），会为每个变量推荐可用的数据库：
+
+| 数据库 | 类型 | 典型变量 |
+|--------|------|---------|
+| **中国城市统计年鉴** | 公开 | GDP、人口、财政、教育、道路面积 |
+| **CSMAR**（国泰安） | 付费订阅 | 上市公司财务、员工结构、研发投入 |
+| **CNRDS** | 付费订阅 | 专利 IPC、绿色专利、数字化转型 |
+| **EPS 数据平台** | 付费订阅 | 分行业就业/工资、城市面板全量指标 |
+| **Wind**（万得） | 付费订阅 | 城市面板全部宏观指标、上市公司全部财务 |
+| **AKShare** | 免费开源 | 城市面板宏观数据（GDP、财政、人口） |
+
+**3. 帮你生成数据下载脚本**
+
+系统会生成 `workspace/data/download_data.py`，包含各数据库的 API 调用框架：
+
+```python
+# 系统生成的数据获取脚本（示例）
+import akshare as ak
+# 城市GDP: ak.macro_china_city_gdp()
+# 财政数据: ak.macro_china_city_fiscal()
+
+# 填入你的 CSMAR API Key:
+# CONFIG["csmar_api_key"] = "your-key"
+```
+
+**你需要做的**：
+
+1. 有订阅的数据库 → 填入 API Key，运行脚本获取
+2. 公开数据 → 直接运行脚本（AKShare 免费）
+3. 手动整理的数据 → 放入 `workspace/data/panel_data.csv`
+
+**数据格式要求**：最终需要一个面板 CSV 文件，包含 Y、X、控制变量、中介变量、分组变量、时间变量、个体 ID。系统在 Step 4.5 检查数据后进入 Step 5（回归）。
+
+**常见场景**：
+
+| 场景 | 数据来源 | 获取方式 |
+|------|---------|---------|
+| 城市面板（地级市） | 中国城市统计年鉴 + EPS | 手动整理或 EPS API |
+| 上市公司面板 | CSMAR | CSMAR API 或本地数据库导出 |
+| 专利数据 | CNRDS | CNRDS API |
+| 微观调查（CFPS/CHARLS） | 公开申请 | 官网申请后下载 |
+| 试点城市名单 | 政府公开 | 手动整理 CSV |
+
+> **一句话总结**：系统告诉你"需要什么、从哪找、怎么下载"，但**数据本身需要你获取**。这是因为经济学实证数据大多来自付费数据库（CSMAR/CNRDS/EPS），系统无法绕过订阅墙。
 
 ---
 
